@@ -1,4 +1,4 @@
-# Group Term Project 8
+# Group Team Project 8
 
 ## Project Name:
 
