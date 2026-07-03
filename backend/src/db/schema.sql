@@ -1,3 +1,7 @@
+
+-- last updated: 2026-07-02
+-- update author: Austin
+
 -- Centsible database schema (SQLite)
 
 PRAGMA foreign_keys = ON;
