@@ -13,3 +13,19 @@ Centsible is a personal finance tracker that helps individuals who are serious a
 - Andre Phanavanh
 - Austin Ridge
 - Muhammad Taha
+
+
+
+
+## Before start  
+cd Group-Project-3444\backend
+npm install
+npm run db:migrate
+npm run dev
+
+then  
+cd Group-Project-3444\frontend
+npm install
+npm run dev
+
+they will good to go on port ####
