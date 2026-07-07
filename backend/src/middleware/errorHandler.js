@@ -32,6 +32,14 @@ function errorHandler(err, req, res, next) {
     return res.status(409).json({ error: 'That record already exists.' });
   }
 
+  // fired when a referenced row is missing - usually a stale/unknown userId
+  // (e.g. logged-in user was removed) or a category_id that doesn't exist
+  if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+    return res.status(400).json({
+      error: 'Unknown user or category. Try logging in again.',
+    });
+  }
+
   const status = err.status || 500;
   if (status >= 500) {
     console.error(err); // unexpected - log full stack

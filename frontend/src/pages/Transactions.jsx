@@ -3,6 +3,7 @@ import TransactionTable from "../components/TransactionTable.jsx";
 import {
   getTransactions,
   createTransaction,
+  updateTransaction,
   deleteTransaction,
   getCategories,
 } from "../services/api";
@@ -19,6 +20,7 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null); // null = adding, id = editing
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -41,29 +43,55 @@ export default function Transactions() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    const payload = {
+      description: form.description,
+      amount: Number(form.amount), // backend requires a number
+      type: form.type,
+      transaction_date: form.transaction_date, // YYYY-MM-DD from the date input
+      category_id: form.category_id ? Number(form.category_id) : null,
+    };
     try {
-      const res = await createTransaction({
-        description: form.description,
-        amount: Number(form.amount), // backend requires a number
-        type: form.type,
-        transaction_date: form.transaction_date, // YYYY-MM-DD from the date input
-        category_id: form.category_id ? Number(form.category_id) : null,
-      });
+      const res = editingId
+        ? await updateTransaction(editingId, payload)
+        : await createTransaction(payload);
       // Backend returns the saved row but without category_name (it's a JOIN),
       // so attach the name from our categories list for display.
       const cat = categories.find((c) => c.id === Number(form.category_id));
       const saved = { ...res.data, category_name: cat?.name ?? null };
-      setTransactions([saved, ...transactions]);
+      setTransactions((prev) =>
+        editingId
+          ? prev.map((t) => (t.id === editingId ? saved : t))
+          : [saved, ...prev]
+      );
       setForm(emptyForm);
+      setEditingId(null);
     } catch (err) {
       setError(err.response?.data?.error || "Could not save the transaction.");
     }
+  };
+
+  const handleEdit = (t) => {
+    setEditingId(t.id);
+    setForm({
+      description: t.description ?? "",
+      amount: String(t.amount),
+      category_id: t.category_id ? String(t.category_id) : "",
+      type: t.type,
+      transaction_date: t.transaction_date,
+    });
+    setError("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setForm(emptyForm);
   };
 
   const handleDelete = async (id) => {
     try {
       await deleteTransaction(id);
       setTransactions(transactions.filter((t) => t.id !== id));
+      if (editingId === id) handleCancelEdit(); // don't keep editing a deleted row
     } catch {
       setError("Could not delete the transaction.");
     }
@@ -90,6 +118,7 @@ export default function Transactions() {
         ) : (
           <TransactionTable
             transactions={transactions}
+            onEdit={handleEdit}
             onDelete={handleDelete}
           />
         )}
@@ -97,7 +126,9 @@ export default function Transactions() {
 
       {/* Add transaction form */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-base font-semibold mb-4">Add Transaction</h3>
+        <h3 className="text-base font-semibold mb-4">
+          {editingId ? "Edit Transaction" : "Add Transaction"}
+        </h3>
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
@@ -176,13 +207,22 @@ export default function Transactions() {
             />
           </div>
 
-          <div className="flex items-end">
+          <div className="flex items-end gap-2">
             <button
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg py-2 text-sm transition-colors"
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg py-2 text-sm transition-colors"
             >
-              Add transaction
+              {editingId ? "Update" : "Add transaction"}
             </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="px-4 bg-zinc-700 hover:bg-zinc-600 text-white font-medium rounded-lg py-2 text-sm transition-colors"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         </form>
       </div>

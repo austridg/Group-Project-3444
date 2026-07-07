@@ -89,6 +89,47 @@ router.post('/', (req, res) => {
   res.status(201).json(created);
 });
 
+// PUT /api/transactions/:id -> edit an existing income/expense
+router.put('/:id', (req, res) => {
+  const body = req.body || {};
+  const userId = requireUserId(body);
+  const { type, amount, description, transaction_date, category_id } = body;
+
+  if (type !== 'income' && type !== 'expense') {
+    throw new ApiError(400, "type must be 'income' or 'expense'.");
+  }
+  if (typeof amount !== 'number' || amount < 0) {
+    throw new ApiError(400, 'amount must be a number >= 0.');
+  }
+  if (!transaction_date) {
+    throw new ApiError(400, 'transaction_date (YYYY-MM-DD) is required.');
+  }
+
+  const info = db
+    .prepare(
+      `UPDATE transactions
+          SET category_id = ?, type = ?, amount = ?, description = ?, transaction_date = ?
+        WHERE id = ? AND user_id = ?`
+    )
+    .run(
+      category_id ?? null,
+      type,
+      amount,
+      description ?? null,
+      transaction_date,
+      Number(req.params.id),
+      userId
+    );
+
+  if (info.changes === 0) throw new ApiError(404, 'Transaction not found.');
+
+  const updated = db
+    .prepare('SELECT * FROM transactions WHERE id = ?')
+    .get(Number(req.params.id));
+
+  res.json(updated);
+});
+
 // DELETE /api/transactions/:id?userId=1 -> remove a transaction
 router.delete('/:id', (req, res) => {
   const userId = requireUserId(req.query);

@@ -1,7 +1,8 @@
 // Renders transactions using the backend's field names:
 // { id, description, category_name, type: "income" | "expense", amount, transaction_date }
-// Pass an optional onDelete(id) to show a delete button per row.
-export default function TransactionTable({ transactions, onDelete }) {
+// Pass an optional onDelete(id) and/or onEdit(transaction) to show row actions.
+export default function TransactionTable({ transactions, onDelete, onEdit }) {
+  const showActions = onEdit || onDelete;
   if (!transactions.length) {
     return (
       <p className="text-sm text-zinc-500 py-6 text-center">
@@ -19,7 +20,7 @@ export default function TransactionTable({ transactions, onDelete }) {
             <th className="py-3 pr-4 font-medium">Category</th>
             <th className="py-3 pr-4 font-medium">Date</th>
             <th className="py-3 text-right font-medium">Amount</th>
-            {onDelete && <th className="py-3 pl-4 w-10"></th>}
+            {showActions && <th className="py-3 pl-4 w-20"></th>}
           </tr>
         </thead>
         <tbody>
@@ -41,15 +42,26 @@ export default function TransactionTable({ transactions, onDelete }) {
                 {t.type === "income" ? "+" : "-"}$
                 {Math.abs(t.amount).toLocaleString()}
               </td>
-              {onDelete && (
-                <td className="py-3 pl-4 text-right">
-                  <button
-                    onClick={() => onDelete(t.id)}
-                    title="Delete transaction"
-                    className="text-zinc-600 hover:text-red-400 transition-colors"
-                  >
-                    ✕
-                  </button>
+              {showActions && (
+                <td className="py-3 pl-4 text-right whitespace-nowrap">
+                  {onEdit && (
+                    <button
+                      onClick={() => onEdit(t)}
+                      title="Edit transaction"
+                      className="text-zinc-600 hover:text-emerald-400 transition-colors mr-3"
+                    >
+                      ✎
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={() => onDelete(t.id)}
+                      title="Delete transaction"
+                      className="text-zinc-600 hover:text-red-400 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </td>
               )}
             </tr>

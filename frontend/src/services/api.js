@@ -54,6 +54,11 @@ export const getTransactions = () =>
 export const createTransaction = (data) =>
   api.post("/transactions", { ...data, userId: getUserId() });
 
+// PUT /api/transactions/:id
+// { userId, type, amount (number), description, transaction_date, category_id }
+export const updateTransaction = (id, data) =>
+  api.put(`/transactions/${id}`, { ...data, userId: getUserId() });
+
 // DELETE /api/transactions/:id?userId=1
 export const deleteTransaction = (id) =>
   api.delete(`/transactions/${id}`, { params: { userId: getUserId() } });
@@ -64,11 +69,25 @@ export const deleteTransaction = (id) =>
 export const getSummary = () =>
   api.get("/summary", { params: { userId: getUserId() } });
 
+// ---- Budgets ----
+// GET /api/budgets?userId=1&month=7&year=2026 (month/year optional -> current month)
+// -> [{ id, category_id, category_name, monthly_limit, current_spending, month, year }]
+export const getBudgets = (month, year) =>
+  api.get("/budgets", { params: { userId: getUserId(), month, year } });
+
+// POST /api/budgets { userId, category_id (null = overall), monthly_limit, month, year }
+// re-posting the same category+period overwrites the limit (upsert).
+export const saveBudget = (data) =>
+  api.post("/budgets", { ...data, userId: getUserId() });
+
+// DELETE /api/budgets/:id?userId=1
+export const deleteBudget = (id) =>
+  api.delete(`/budgets/${id}`, { params: { userId: getUserId() } });
+
 // ---- Not built in the backend yet ----
-// Bills, subscriptions, and budgets have database tables but no routes.
-// The Bills and Budget pages use mock data until these exist:
+// Bills and subscriptions have database tables but no routes.
+// The Bills page uses mock data until these exist:
 // export const getBills = () => api.get("/bills", { params: { userId: getUserId() } });
 // export const createBill = (data) => api.post("/bills", { ...data, userId: getUserId() });
-// export const getBudgets = () => api.get("/budgets", { params: { userId: getUserId() } });
 
 export default api;

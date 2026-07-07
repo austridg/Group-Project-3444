@@ -14,7 +14,10 @@ export default function BudgetProgress({ label, spent, limit }) {
       <div className="flex justify-between text-sm mb-1.5">
         <span className="text-zinc-300">{label}</span>
         <span className="text-zinc-400">
-          ${spent.toLocaleString()} / ${limit.toLocaleString()}
+          <span className={spent > 0 ? "text-red-400" : ""}>
+            {spent > 0 ? `-$${spent.toLocaleString()}` : "$0"}
+          </span>{" "}
+          / ${limit.toLocaleString()}
         </span>
       </div>
       <div className="h-2.5 bg-zinc-800 rounded-full overflow-hidden">

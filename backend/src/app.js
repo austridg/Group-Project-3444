@@ -19,6 +19,7 @@ const authRoutes = require('./routes/auth');
 const categoryRoutes = require('./routes/categories');
 const transactionRoutes = require('./routes/transactions');
 const summaryRoutes = require('./routes/summary');
+const budgetRoutes = require('./routes/budgets');
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/summary', summaryRoutes);
+app.use('/api/budgets', budgetRoutes);
 
 // unmatched routes -> 404, then everything runs through the error handler
 app.use(notFound);
