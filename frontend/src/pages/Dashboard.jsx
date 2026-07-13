@@ -4,14 +4,9 @@ import SummaryCard from "../components/SummaryCard.jsx";
 import TransactionTable from "../components/TransactionTable.jsx";
 import BudgetProgress from "../components/BudgetProgress.jsx";
 import BillCard from "../components/BillCard.jsx";
-import { getSummary, getTransactions, getBudgets } from "../services/api";
+import { getSummary, getTransactions, getBudgets, getBills } from "../services/api";
 
-// TODO: replace with GET /api/bills once the backend adds bill routes
-const billsDueSoon = [
-  { id: 1, name: "Electricity", amount: 85, dueDate: "Jul 10", frequency: "Monthly" },
-  { id: 2, name: "Internet", amount: 60, dueDate: "Jul 12", frequency: "Monthly" },
-  { id: 3, name: "Spotify", amount: 11, dueDate: "Jul 15", frequency: "Monthly" },
-];
+const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 // budget progress is scoped to the current month
 const NOW = new Date();
@@ -29,14 +24,16 @@ export default function Dashboard() {
   const [recent, setRecent] = useState([]);
   const [budgets, setBudgets] = useState([]); // this month's per-category budgets
   const [monthExpense, setMonthExpense] = useState(0); // all expenses this month
+  const [bills, setBills] = useState([]); // upcoming bills
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([getSummary(), getTransactions(), getBudgets(MONTH, YEAR)])
-      .then(([sumRes, txRes, budgetRes]) => {
+    Promise.all([getSummary(), getTransactions(), getBudgets(MONTH, YEAR), getBills()])
+      .then(([sumRes, txRes, budgetRes, billsRes]) => {
         setSummary(sumRes.data);
         setRecent(txRes.data.slice(0, 5)); // newest 5 (backend sorts newest first)
         setBudgets(budgetRes.data);
+        setBills(billsRes.data);
         // total spent this month across ALL categories (drives the overall budget)
         setMonthExpense(
           txRes.data
@@ -69,6 +66,9 @@ export default function Dashboard() {
   const available = (b) => b.monthly_limit - b.current_spending;
   const availableClass = (n) =>
     n >= 0 ? "text-emerald-400" : "text-red-400";
+
+  // unpaid bills, soonest first (backend already sorts by due_date asc)
+  const dueSoon = bills.filter((b) => !b.is_paid).slice(0, 4);
 
   return (
     <div className="max-w-6xl">
@@ -158,14 +158,28 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Bills due soon (mock until backend adds bill routes) */}
+          {/* Bills due soon (live from GET /api/bills, unpaid only) */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <h3 className="text-base font-semibold mb-4">Bills Due Soon</h3>
-            <div className="space-y-2.5">
-              {billsDueSoon.map((bill) => (
-                <BillCard key={bill.id} {...bill} />
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold">Bills Due Soon</h3>
+              <Link to="/bills" className="text-xs text-emerald-400 hover:underline">
+                Manage
+              </Link>
             </div>
+            {dueSoon.length === 0 ? (
+              <p className="text-sm text-zinc-500">No unpaid bills. 🎉</p>
+            ) : (
+              <div className="space-y-2.5">
+                {dueSoon.map((bill) => (
+                  <BillCard
+                    key={bill.id}
+                    name={bill.name}
+                    amount={bill.amount}
+                    meta={`Due ${bill.due_date} · ${cap(bill.frequency)}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

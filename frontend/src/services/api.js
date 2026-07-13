@@ -84,10 +84,40 @@ export const saveBudget = (data) =>
 export const deleteBudget = (id) =>
   api.delete(`/budgets/${id}`, { params: { userId: getUserId() } });
 
-// ---- Not built in the backend yet ----
-// Bills and subscriptions have database tables but no routes.
-// The Bills page uses mock data until these exist:
-// export const getBills = () => api.get("/bills", { params: { userId: getUserId() } });
-// export const createBill = (data) => api.post("/bills", { ...data, userId: getUserId() });
+// ---- Bills (FR4) ----
+// GET /api/bills?userId=1
+// -> [{ id, name, amount, due_date, frequency, is_paid, created_at }]
+export const getBills = () =>
+  api.get("/bills", { params: { userId: getUserId() } });
+
+// POST /api/bills { userId, name, amount, due_date, frequency, is_paid }
+export const createBill = (data) =>
+  api.post("/bills", { ...data, userId: getUserId() });
+
+// PUT /api/bills/:id { userId, name, amount, due_date, frequency, is_paid }
+export const updateBill = (id, data) =>
+  api.put(`/bills/${id}`, { ...data, userId: getUserId() });
+
+// DELETE /api/bills/:id?userId=1
+export const deleteBill = (id) =>
+  api.delete(`/bills/${id}`, { params: { userId: getUserId() } });
+
+// ---- Subscriptions (FR4) ----
+// GET /api/subscriptions?userId=1
+// -> [{ id, name, amount, billing_cycle, next_renewal_date, is_active, created_at }]
+export const getSubscriptions = () =>
+  api.get("/subscriptions", { params: { userId: getUserId() } });
+
+// POST /api/subscriptions { userId, name, amount, billing_cycle, next_renewal_date, is_active }
+export const createSubscription = (data) =>
+  api.post("/subscriptions", { ...data, userId: getUserId() });
+
+// PUT /api/subscriptions/:id
+export const updateSubscription = (id, data) =>
+  api.put(`/subscriptions/${id}`, { ...data, userId: getUserId() });
+
+// DELETE /api/subscriptions/:id?userId=1
+export const deleteSubscription = (id) =>
+  api.delete(`/subscriptions/${id}`, { params: { userId: getUserId() } });
 
 export default api;
