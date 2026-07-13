@@ -26,6 +26,12 @@ CREATE TABLE IF NOT EXISTS categories (
   UNIQUE (user_id, name)
 );
 
+-- SQLite treats every NULL as distinct, so the UNIQUE(user_id, name) above
+-- never dedupes the global (user_id IS NULL) categories seeded below - this
+-- partial index is what actually enforces one row per default category name.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_categories_global_name
+  ON categories (name) WHERE user_id IS NULL;
+
 -- FR2: transaction management (income & expenses)
 CREATE TABLE IF NOT EXISTS transactions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
